@@ -7,16 +7,24 @@ A drop-in web component for decentralized commit verification — the decentrali
 
 ## Quick Start
 
+### Auto-resolve from a repository (recommended)
+
 ```html
 <script type="module" src="https://unpkg.com/auths-verify/dist/auths-verify.mjs"></script>
 
+<auths-verify repo="https://github.com/user/repo"></auths-verify>
+```
+
+The widget fetches identity and attestation data from the forge's Git refs automatically, loads WASM, and verifies.
+
+### Manual data (advanced)
+
+```html
 <auths-verify
   attestation='{"version":1,"rid":"...","issuer":"did:keri:...","subject":"did:key:z...","device_public_key":"...","identity_signature":"...","device_signature":"...","revoked":false}'
   public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
 ></auths-verify>
 ```
-
-The widget loads WASM and verifies the attestation automatically on mount.
 
 ## Display Modes
 
@@ -48,13 +56,18 @@ Badge with a hover tooltip summarizing verification status.
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `attestation` | JSON string | `""` | Single attestation to verify |
-| `attestations` | JSON array string | `""` | Chain of attestations to verify |
-| `public-key` | hex string | `""` | Root/issuer Ed25519 public key |
+| `repo` | URL string | `""` | Repository URL — auto-resolves identity and attestations from forge |
+| `forge` | `github\|gitea\|gitlab` | auto | Override forge type auto-detection |
+| `identity` | DID string | `""` | Filter to a specific identity DID when repo has multiple |
+| `attestation` | JSON string | `""` | Single attestation to verify (manual mode) |
+| `attestations` | JSON array string | `""` | Chain of attestations to verify (manual mode) |
+| `public-key` | hex string | `""` | Root/issuer Ed25519 public key (manual mode) |
 | `mode` | `badge\|detail\|tooltip` | `badge` | Display mode |
 | `size` | `sm\|md\|lg` | `md` | Badge size |
 | `wasm-url` | string | `""` | Optional WASM URL override |
 | `auto-verify` | boolean | `true` | Verify on connect/attribute change |
+
+When `repo` is set, the widget auto-resolves `attestations` and `public-key` from the forge before running WASM verification. GitHub and Gitea are supported. GitLab does not expose custom Git refs — use manual attributes for GitLab repos.
 
 ## JavaScript API
 

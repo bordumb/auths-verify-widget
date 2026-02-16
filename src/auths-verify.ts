@@ -15,7 +15,7 @@ const DEBOUNCE_MS = 50;
 
 class AuthsVerify extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ['attestation', 'attestations', 'public-key', 'mode', 'size', 'wasm-url', 'auto-verify'];
+    return ['attestation', 'attestations', 'public-key', 'mode', 'size', 'wasm-url', 'auto-verify', 'repo', 'forge', 'identity'];
   }
 
   // --- Private state ---
@@ -112,6 +112,27 @@ class AuthsVerify extends HTMLElement {
     }
   }
 
+  get repo(): string {
+    return this.getAttribute('repo') ?? '';
+  }
+  set repo(v: string) {
+    this.setAttribute('repo', v);
+  }
+
+  get forge(): string {
+    return this.getAttribute('forge') ?? '';
+  }
+  set forge(v: string) {
+    this.setAttribute('forge', v);
+  }
+
+  get identity(): string {
+    return this.getAttribute('identity') ?? '';
+  }
+  set identity(v: string) {
+    this.setAttribute('identity', v);
+  }
+
   // --- Public API ---
 
   /** Trigger verification manually. */
@@ -124,6 +145,21 @@ class AuthsVerify extends HTMLElement {
     this.#setState('loading');
 
     try {
+      // If repo is set but attestation data is missing, resolve from forge
+      if (this.repo && !this.attestation && !this.attestations) {
+        const { resolveFromRepo } = await import('./resolvers/index');
+        const result = await resolveFromRepo(
+          this.repo,
+          this.forge || undefined,
+          this.identity || undefined,
+        );
+        if (!result.bundle) {
+          throw new Error(result.error ?? 'Could not resolve identity from repository');
+        }
+        this.publicKey = result.bundle.public_key_hex;
+        this.attestations = JSON.stringify(result.bundle.attestation_chain);
+      }
+
       await ensureInit(this.wasmUrl || undefined);
 
       const pk = this.publicKey;
@@ -177,7 +213,7 @@ class AuthsVerify extends HTMLElement {
   // --- Internals ---
 
   #hasInput(): boolean {
-    return !!(this.publicKey && (this.attestation || this.attestations));
+    return !!(this.repo || (this.publicKey && (this.attestation || this.attestations)));
   }
 
   #setState(state: ComponentState): void {
