@@ -1,6 +1,8 @@
 import { defineConfig, type Plugin } from 'vite';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import wasm from 'vite-plugin-wasm';
+import topLevelAwait from 'vite-plugin-top-level-await';
 
 function inlineWasmPlugin(): Plugin {
   return {
@@ -33,13 +35,13 @@ export default defineConfig(({ mode }) => {
   const isSlim = mode === 'slim';
 
   return {
-    plugins: [inlineWasmPlugin()],
+    plugins: [wasm(), topLevelAwait(), inlineWasmPlugin()],
     build: {
       lib: {
         entry: resolve(__dirname, 'src/auths-verify.ts'),
         name: 'AuthsVerify',
-        formats: ['iife'],
-        fileName: () => isSlim ? 'slim/auths-verify.js' : 'auths-verify.js',
+        formats: ['es'],
+        fileName: () => isSlim ? 'slim/auths-verify' : 'auths-verify',
       },
       outDir: 'dist',
       emptyOutDir: !isSlim,

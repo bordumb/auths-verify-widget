@@ -1,17 +1,17 @@
 {
-  "name": "@auths/verify-widget",
+  "name": "auths-verify",
   "version": "0.1.0",
   "description": "Drop-in <auths-verify> web component for decentralized commit verification",
   "type": "module",
-  "main": "dist/auths-verify.js",
+  "main": "dist/auths-verify.mjs",
   "types": "dist/types/auths-verify.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/auths-verify.js",
+      "import": "./dist/auths-verify.mjs",
       "types": "./dist/types/auths-verify.d.ts"
     },
     "./slim": {
-      "import": "./dist/slim/auths-verify.js",
+      "import": "./dist/slim/auths-verify.mjs",
       "types": "./dist/types/auths-verify.d.ts"
     }
   },
@@ -19,35 +19,48 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite serve examples --open",
+    "dev": "vite --open /examples/index.html",
     "build": "npm run build:full && npm run build:slim",
     "build:full": "INLINE_WASM=true vite build",
     "build:slim": "vite build --mode slim",
-    "build:wasm": "cd ../auths/crates/auths-verifier && wasm-pack build --target bundler --out-dir ../../../auths-verify-widget/wasm",
+    "build:wasm": "cd ../auths/crates/auths-verifier && wasm-pack build --target bundler --features wasm && rm -rf ../../../auths-verify-widget/wasm && mv pkg ../../../auths-verify-widget/wasm",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build:wasm && npm run test && npm run build"
   },
   "keywords": [
     "auths",
     "web-component",
+    "custom-element",
     "verification",
     "decentralized-identity",
-    "wasm"
+    "wasm",
+    "cryptography",
+    "git",
+    "commit-signing",
+    "did",
+    "keri",
+    "ed25519"
   ],
-  "author": "auths",
+  "author": "bordumb",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bordumb/auths.git",
-    "directory": "auths-verify-widget"
+    "url": "https://github.com/bordumb/auths-verify-widget.git"
+  },
+  "homepage": "https://github.com/bordumb/auths-verify-widget#readme",
+  "bugs": {
+    "url": "https://github.com/bordumb/auths-verify-widget/issues"
   },
   "devDependencies": {
     "@auths/verifier": "file:../auths/packages/auths-verifier-ts",
+    "happy-dom": "^12.10.3",
     "typescript": "^5.3.2",
     "vite": "^5.4.0",
-    "vitest": "^1.6.0",
-    "happy-dom": "^12.10.3"
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0",
+    "vitest": "^1.6.0"
   },
   "engines": {
     "node": ">=18.0.0"
