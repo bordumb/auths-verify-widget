@@ -3,28 +3,45 @@
 [![npm version](https://img.shields.io/npm/v/auths-verify.svg)](https://www.npmjs.com/package/auths-verify)
 [![license](https://img.shields.io/npm/l/auths-verify.svg)](https://github.com/bordumb/auths-verify-widget/blob/main/LICENSE)
 
-A drop-in web component for decentralized commit verification — the decentralized equivalent of GitHub's green "Verified" badge. Powered by [Auths](https://github.com/bordumb/auths) cryptographic attestation verification via WASM.
+A drop-in web component that verifies [Auths](https://github.com/bordumb/auths) decentralized identities — the open-source equivalent of GitHub's green "Verified" badge. Point it at any repository that uses Auths, and it cryptographically verifies the identity chain in the browser via WASM.
 
-## Quick Start
+## Install
 
-### Auto-resolve from a repository (recommended)
+**CDN (no build step):**
 
 ```html
 <script type="module" src="https://unpkg.com/auths-verify/dist/auths-verify.mjs"></script>
+```
 
+**npm (for bundlers):**
+
+```bash
+npm install auths-verify
+```
+
+```js
+import 'auths-verify';
+```
+
+## Quick Start
+
+Add the widget to any page and point it at a repository:
+
+```html
 <auths-verify repo="https://github.com/user/repo"></auths-verify>
 ```
 
-The widget fetches identity and attestation data from the forge's Git refs automatically, loads WASM, and verifies.
+That's it. The widget will:
 
-### Manual data (advanced)
+1. Call the GitHub API to read the repository's `refs/auths/` identity data
+2. Extract the public key from the identity's `did:key`
+3. Load the WASM verification engine
+4. Cryptographically verify the full attestation chain
+5. Display a badge showing the result (Verified, Invalid, Expired, etc.)
 
-```html
-<auths-verify
-  attestation='{"version":1,"rid":"...","issuer":"did:keri:...","subject":"did:key:z...","device_public_key":"...","identity_signature":"...","device_signature":"...","revoked":false}'
-  public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
-></auths-verify>
-```
+**Prerequisite:** The repository owner must have set up an Auths identity with [`auths init`](https://github.com/bordumb/auths). If the repo doesn't have Auths identity data, the widget will show an error.
+
+**Supported forges:** GitHub and Gitea (including self-hosted). GitLab is not supported for auto-resolve because its API does not expose custom Git refs — use manual mode instead.
 
 ## Display Modes
 
@@ -33,7 +50,7 @@ The widget fetches identity and attestation data from the forge's Git refs autom
 Compact inline pill showing verification status.
 
 ```html
-<auths-verify attestation="..." public-key="..." mode="badge"></auths-verify>
+<auths-verify repo="https://github.com/user/repo"></auths-verify>
 ```
 
 ### Detail
@@ -41,7 +58,7 @@ Compact inline pill showing verification status.
 Badge with an expandable panel showing the full attestation chain. Click the badge to expand.
 
 ```html
-<auths-verify attestations="[...]" public-key="..." mode="detail"></auths-verify>
+<auths-verify repo="https://github.com/user/repo" mode="detail"></auths-verify>
 ```
 
 ### Tooltip
@@ -49,25 +66,54 @@ Badge with an expandable panel showing the full attestation chain. Click the bad
 Badge with a hover tooltip summarizing verification status.
 
 ```html
-<auths-verify attestation="..." public-key="..." mode="tooltip"></auths-verify>
+<auths-verify repo="https://github.com/user/repo" mode="tooltip"></auths-verify>
+```
+
+### Sizes
+
+```html
+<auths-verify repo="..." size="sm"></auths-verify>
+<auths-verify repo="..." size="md"></auths-verify>  <!-- default -->
+<auths-verify repo="..." size="lg"></auths-verify>
 ```
 
 ## Attributes
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `repo` | URL string | `""` | Repository URL — auto-resolves identity and attestations from forge |
-| `forge` | `github\|gitea\|gitlab` | auto | Override forge type auto-detection |
-| `identity` | DID string | `""` | Filter to a specific identity DID when repo has multiple |
-| `attestation` | JSON string | `""` | Single attestation to verify (manual mode) |
-| `attestations` | JSON array string | `""` | Chain of attestations to verify (manual mode) |
-| `public-key` | hex string | `""` | Root/issuer Ed25519 public key (manual mode) |
-| `mode` | `badge\|detail\|tooltip` | `badge` | Display mode |
-| `size` | `sm\|md\|lg` | `md` | Badge size |
-| `wasm-url` | string | `""` | Optional WASM URL override |
-| `auto-verify` | boolean | `true` | Verify on connect/attribute change |
+| `repo` | URL string | — | Repository URL to verify (recommended) |
+| `forge` | `github` \| `gitea` \| `gitlab` | auto-detected | Override forge detection (useful for self-hosted Gitea) |
+| `identity` | DID string | — | Filter to a specific identity when a repo has multiple |
+| `mode` | `badge` \| `detail` \| `tooltip` | `badge` | Display mode |
+| `size` | `sm` \| `md` \| `lg` | `md` | Badge size |
+| `auto-verify` | boolean | `true` | Verify automatically on page load |
+| `wasm-url` | URL string | — | Override the WASM binary URL |
 
-When `repo` is set, the widget auto-resolves `attestations` and `public-key` from the forge before running WASM verification. GitHub and Gitea are supported. GitLab does not expose custom Git refs — use manual attributes for GitLab repos.
+### Manual mode
+
+If you already have the attestation data (e.g., from a CI pipeline, from a GitLab repo, or for offline verification), you can supply it directly instead of using `repo`:
+
+```html
+<auths-verify
+  attestation='{"version":1, ...}'
+  public-key="aabbccdd..."
+></auths-verify>
+```
+
+Or for a full chain:
+
+```html
+<auths-verify
+  attestations='[{"version":1, ...}, {"version":1, ...}]'
+  public-key="aabbccdd..."
+></auths-verify>
+```
+
+| Attribute | Type | Description |
+|---|---|---|
+| `attestation` | JSON string | Single attestation to verify |
+| `attestations` | JSON array string | Chain of attestations to verify |
+| `public-key` | hex string | Root/issuer Ed25519 public key (64 hex chars) |
 
 ## JavaScript API
 
@@ -79,6 +125,9 @@ await el.verify();
 
 // Get the last verification report
 const report = el.getReport();
+// report.status.type → 'Valid' | 'InvalidSignature' | 'Expired' | 'Revoked' | 'BrokenChain'
+// report.chain       → [{ issuer, subject, valid, error? }, ...]
+// report.warnings    → string[]
 
 // Listen for events
 el.addEventListener('auths-verified', (e) => {
@@ -106,6 +155,20 @@ auths-verify {
 ```
 
 Available properties: `--auths-{state}-bg`, `--auths-{state}-fg`, `--auths-{state}-border` for each state (`verified`, `invalid`, `expired`, `revoked`, `error`, `loading`, `idle`), plus `--auths-font-family`, `--auths-font-size`, `--auths-border-radius`, `--auths-detail-border-radius`.
+
+## How It Works
+
+When you set `repo="https://github.com/user/repo"`:
+
+1. The widget parses the URL and detects the forge (GitHub, Gitea, or GitLab)
+2. It calls the forge's REST API to list Git refs under `refs/auths/`
+3. It reads `identity.json` from `refs/auths/identity` to get the controller DID
+4. It extracts the Ed25519 public key from the `did:key:z...` identifier (pure TypeScript, no WASM needed)
+5. It reads `attestation.json` from each device ref under `refs/auths/devices/nodes/`
+6. It loads the WASM verification engine and cryptographically verifies the attestation chain
+7. It renders the result as a badge
+
+The resolver layer uses dynamic imports — if you only use manual `attestation`/`public-key` attributes, the resolver code is never loaded (zero bundle size impact).
 
 ## Development
 
@@ -154,27 +217,13 @@ Opens the examples directory with hot reload via Vite.
 ### Production build
 
 ```bash
-# Build WASM first
 npm run build:wasm
-
-# Build both full (inlined WASM) and slim (split WASM) bundles
 npm run build
 ```
 
 Outputs:
-- `dist/auths-verify.mjs` — single file with WASM base64-inlined (~100-200KB gzipped)
+- `dist/auths-verify.mjs` — single file with WASM base64-inlined
 - `dist/slim/auths-verify.mjs` — smaller JS, loads `.wasm` separately
-
-### Visual testing
-
-Open `tests/visual/index.html` in a browser to see all states and modes rendered side by side.
-
-## Build Outputs
-
-| File | Description |
-|---|---|
-| `dist/auths-verify.mjs` | CDN-ready single file (WASM inlined) |
-| `dist/slim/auths-verify.mjs` | Smaller JS bundle (loads WASM separately) |
 
 ## License
 
