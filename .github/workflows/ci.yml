@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout widget repo
+        uses: actions/checkout@v4
+
+      - name: Checkout auths repo (for local @auths/verifier dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: bordumb/auths
+          path: ../auths
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.93"
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build WASM
+        run: npm run build:wasm
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build (full + slim)
+        run: npm run build
+
+      - name: Verify output exists
+        run: |
+          test -f dist/auths-verify.js || (echo "Missing dist/auths-verify.js" && exit 1)
+          echo "Bundle size:"
+          ls -lh dist/auths-verify.js

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Tooltip Mode</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    .commit-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .commit-msg { font-size: 14px; color: #1f2937; }
+    .commit-hash { font-size: 12px; color: #9ca3af; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>Tooltip Mode</h1>
+  <p>Hover over the badge to see verification summary in a tooltip.</p>
+
+  <div style="margin-top: 24px;">
+    <div class="commit-row">
+      <auths-verify
+        mode="tooltip"
+        attestation='{"version":1,"rid":"commit-sign","issuer":"did:keri:abc123","subject":"did:key:z456","device_public_key":"aabb","identity_signature":"sig1","device_signature":"sig2","revoked":false}'
+        public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+      ></auths-verify>
+      <div>
+        <div class="commit-msg">feat: add decentralized verification badge</div>
+        <div class="commit-hash">a1b2c3d</div>
+      </div>
+    </div>
+
+    <div class="commit-row">
+      <auths-verify
+        mode="tooltip"
+        attestation='{"version":1,"rid":"commit-sign-2","issuer":"did:keri:def456","subject":"did:key:z789","device_public_key":"eeff","identity_signature":"sig3","device_signature":"sig4","revoked":false}'
+        public-key="1122334455667788990011223344556677889900112233445566778899001122"
+      ></auths-verify>
+      <div>
+        <div class="commit-msg">fix: handle expired attestations gracefully</div>
+        <div class="commit-hash">d4e5f6g</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../src/auths-verify.ts"></script>
+</body>
+</html>

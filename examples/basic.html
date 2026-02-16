@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>auths-verify — Basic Example</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { font-size: 20px; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Basic Usage</h1>
+  <p>Drop in a single <code>&lt;script&gt;</code> tag and use the <code>&lt;auths-verify&gt;</code> element:</p>
+
+  <!-- Single attestation verification -->
+  <auths-verify
+    attestation='{"version":1,"rid":"example","issuer":"did:keri:abc123","subject":"did:key:z456","device_public_key":"aabbccdd","identity_signature":"sig1","device_signature":"sig2","revoked":false}'
+    public-key="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+  ></auths-verify>
+
+  <p style="margin-top:24px;font-size:13px;color:#6b7280;">
+    The widget automatically loads WASM and verifies the attestation on mount.
+    Check the browser console for events.
+  </p>
+
+  <!-- For development: load source directly via Vite -->
+  <script type="module" src="../src/auths-verify.ts"></script>
+
+  <!-- For production: use the built file instead:
+  <script src="../dist/auths-verify.js"></script>
+  -->
+
+  <script>
+    document.querySelector('auths-verify').addEventListener('auths-verified', (e) => {
+      console.log('Verification result:', e.detail);
+    });
+    document.querySelector('auths-verify').addEventListener('auths-error', (e) => {
+      console.log('Verification error:', e.detail);
+    });
+  </script>
+</body>
+</html>
