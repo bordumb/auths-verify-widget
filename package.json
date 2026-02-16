@@ -1,6 +1,6 @@
 {
   "name": "auths-verify",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Drop-in <auths-verify> web component for decentralized commit verification",
   "type": "module",
   "main": "dist/auths-verify.mjs",
