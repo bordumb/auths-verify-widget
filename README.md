@@ -162,8 +162,8 @@ npm run build
 ```
 
 Outputs:
-- `dist/auths-verify.js` — single file with WASM base64-inlined (~100-200KB gzipped)
-- `dist/slim/auths-verify.js` — smaller JS, loads `.wasm` separately
+- `dist/auths-verify.mjs` — single file with WASM base64-inlined (~100-200KB gzipped)
+- `dist/slim/auths-verify.mjs` — smaller JS, loads `.wasm` separately
 
 ### Visual testing
 
@@ -173,8 +173,8 @@ Open `tests/visual/index.html` in a browser to see all states and modes rendered
 
 | File | Description |
 |---|---|
-| `dist/auths-verify.js` | CDN-ready single file (WASM inlined) |
-| `dist/slim/auths-verify.js` | Smaller JS bundle (loads WASM separately) |
+| `dist/auths-verify.mjs` | CDN-ready single file (WASM inlined) |
+| `dist/slim/auths-verify.mjs` | Smaller JS bundle (loads WASM separately) |
 
 ## License
 

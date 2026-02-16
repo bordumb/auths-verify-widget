@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-02-16
+
 ### Added
 
 - **resolver:** Auto-resolve identity and attestation data from a repository URL via new `repo` attribute. No more manual JSON — `<auths-verify repo="https://github.com/user/repo">` just works.
